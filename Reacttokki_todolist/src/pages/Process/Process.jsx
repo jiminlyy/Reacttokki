@@ -1,14 +1,19 @@
 import GlassPanel from "../../components/GlassPanel";
+import TopTabs from "../../components/TopTabs";
 import backgroundImg from "../../assets/background.png";
 import { useState, useMemo } from "react";
+import rabbit1 from "../../assets/rabbit1.png";
+import rabbit2 from "../../assets/rabbit2.png";
+import rabbit3 from "../../assets/rabbit3.png";
+import rabbit4 from "../../assets/rabbit4.png";
+import rabbit5 from "../../assets/rabbit5.png";
 
-//---토끼 이미지 입력 ---
 const RABBIT_IMAGES = {
-  0: "/assets/rabbit1.png",
-  25: "/assets/rabbit2.png",
-  50: "/assets/rabbit3.png",
-  75: "/assets/rabbit4.png",
-  100: "/assets/rabbit5.png",
+  0: rabbit1,
+  25: rabbit2,
+  50: rabbit3,
+  75: rabbit4,
+  100: rabbit5,
 };
 // ---토끼 한줄평 입력 ---
 const MESSAGES = {
@@ -100,26 +105,27 @@ export default function Process() {
   const rabbitImg = getRabbitImage(overallPercent);
   const message = getMessage(overallPercent);
 
-  return (
-    <div style={styles.pageWrapper}>
-      {/*
-        실제 프로젝트에서는 여기에 <TopTaps /> 추가
-        <TopTaps />
-      */}
-
+return (
+  <div
+    style={{
+      backgroundImage: `url(${backgroundImg})`,
+      backgroundSize: "cover",
+      backgroundPosition: "center",
+      minHeight: "100vh",
+    }}
+  >
+    <TopTabs />
+    <GlassPanel>
       <div style={styles.wrapper}>
         {/* ══════ 왼쪽: Process 카드 ══════ */}
         <div style={styles.leftPanel}>
           <div style={styles.titleBadge}>Process</div>
-
-          {/* 토끼 이미지 박스 */}
           <div style={styles.rabbitBox}>
             <img
               src={rabbitImg}
               alt={`토끼 ${overallPercent}%`}
               style={styles.rabbitImg}
               onError={(e) => {
-                // 이미지 없을 때 대체 텍스트 표시
                 e.target.style.display = "none";
                 e.target.nextSibling.style.display = "flex";
               }}
@@ -130,8 +136,6 @@ export default function Process() {
               rabbit{overallPercent >= 100 ? 5 : overallPercent >= 75 ? 4 : overallPercent >= 50 ? 3 : overallPercent >= 25 ? 2 : 1}.png
             </div>
           </div>
-
-          {/* 한줄평 + 퍼센트 */}
           <div style={styles.messageBox}>{message}</div>
           <div style={styles.percentText}>{overallPercent}%</div>
         </div>
@@ -140,17 +144,11 @@ export default function Process() {
         <div style={styles.rightPanel}>
           <div style={styles.monthTitle}>4</div>
           <div style={styles.yearSubtitle}>2026</div>
-
-          {/* 요일 헤더 */}
           <div style={styles.weekdayRow}>
             {WEEKDAYS.map((wd) => (
-              <div key={wd} style={styles.weekdayCell}>
-                {wd}
-              </div>
+              <div key={wd} style={styles.weekdayCell}>{wd}</div>
             ))}
           </div>
-
-          {/* 날짜 그리드 */}
           <div style={styles.calendarGrid}>
             {calendarCells.map((cell) => (
               <div
@@ -185,8 +183,6 @@ export default function Process() {
               </div>
             ))}
           </div>
-
-          {/* 범례 */}
           <div style={styles.legend}>
             {[
               { label: "0%", color: "#e0d6f0" },
@@ -196,20 +192,16 @@ export default function Process() {
               { label: "100%", color: "#6c5ce7" },
             ].map((item) => (
               <div key={item.label} style={styles.legendItem}>
-                <div
-                  style={{
-                    ...styles.legendDot,
-                    backgroundColor: item.color,
-                  }}
-                />
+                <div style={{ ...styles.legendDot, backgroundColor: item.color }} />
                 <span style={styles.legendLabel}>{item.label}</span>
               </div>
             ))}
           </div>
         </div>
       </div>
-    </div>
-  );
+    </GlassPanel>
+  </div>
+);
 }
 
 // ─── 스타일 ───
@@ -226,20 +218,21 @@ const styles = {
   wrapper: {
     display: "flex",
     gap: "2rem",
-    background: "rgba(255, 255, 255, 0.25)",
-    backdropFilter: "blur(16px)",
-    WebkitBackdropFilter: "blur(16px)",
-    borderRadius: "24px",
-    border: "1px solid rgba(255, 255, 255, 0.4)",
-    padding: "2rem",
-    maxWidth: "900px",
-    width: "100%",
-    boxShadow: "0 8px 32px rgba(100, 80, 160, 0.15)",
+    width : "100%",
+    // background: "rgba(255, 255, 255, 0.25)",
+    // backdropFilter: "blur(16px)",
+    // WebkitBackdropFilter: "blur(16px)",
+    // borderRadius: "24px",
+    // border: "1px solid rgba(255, 255, 255, 0.4)",
+    // padding: "2rem",
+    // maxWidth: "900px",
+    // width: "100%",
+    // boxShadow: "0 8px 32px rgba(100, 80, 160, 0.15)",
   },
 
   /* ── 왼쪽 패널 ── */
   leftPanel: {
-    flex: "0 0 240px",
+    flex: "0 0 360px",
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
@@ -249,14 +242,14 @@ const styles = {
     background: "rgba(200, 180, 240, 0.4)",
     borderRadius: "20px",
     padding: "0.4rem 1.5rem",
-    fontSize: "1.1rem",
+    fontSize: "1.3rem",
     fontWeight: "700",
     color: "#4a4a6a",
     letterSpacing: "0.5px",
   },
   rabbitBox: {
-    width: "220px",
-    height: "260px",
+    width: "320px",
+    height: "360px",
     background: "rgba(255, 220, 240, 0.4)",
     borderRadius: "16px",
     display: "flex",
@@ -284,14 +277,14 @@ const styles = {
     background: "rgba(255, 200, 220, 0.5)",
     borderRadius: "12px",
     padding: "0.5rem 1.2rem",
-    fontSize: "0.9rem",
+    fontSize: "1.1rem",
     fontWeight: "600",
     color: "#5a4a6a",
     textAlign: "center",
     width: "100%",
   },
   percentText: {
-    fontSize: "2.5rem",
+    fontSize: "3.5rem",
     fontWeight: "800",
     color: "#5a4a6a",
     lineHeight: 1,
@@ -305,13 +298,13 @@ const styles = {
     alignItems: "center",
   },
   monthTitle: {
-    fontSize: "2rem",
+    fontSize: "2.5rem",
     fontWeight: "800",
     color: "#4a4a6a",
     lineHeight: 1,
   },
-  yearSubtitle: {
-    fontSize: "0.85rem",
+  yearSubtitle: { 
+    fontSize: "1rem",
     color: "#8a7ab0",
     marginBottom: "0.75rem",
     fontWeight: "600",
@@ -325,7 +318,7 @@ const styles = {
   },
   weekdayCell: {
     textAlign: "center",
-    fontSize: "0.75rem",
+    fontSize: "0.95rem",
     fontWeight: "700",
     color: "#8a7ab0",
     padding: "4px 0",
@@ -346,7 +339,7 @@ const styles = {
     minWidth: "36px",
   },
   dayNumber: {
-    fontSize: "0.85rem",
+    fontSize: "1.1rem",
     fontWeight: "700",
     userSelect: "none",
   },
