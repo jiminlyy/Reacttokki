@@ -1,5 +1,5 @@
-import TopTabs from "../../components/common/TopTabs";
-import GlassPanel from "../../components/common/GlassPanel";
+import TopTabs from "../../components/TopTabs";
+import GlassPanel from "../../components/GlassPanel";
 import backgroundImg from "../../assets/background.png";
 import "./Daily.css"
 
