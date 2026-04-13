@@ -1,6 +1,6 @@
 import TaskCard from "./TaskCard";
 
-function CompletedTaskSection({ tasks, total }) {
+function CompletedTaskSection({ tasks, totalCount }) {
   return (
     <section className="completed-section">
       <h2>Completed tasks</h2>
@@ -9,9 +9,7 @@ function CompletedTaskSection({ tasks, total }) {
         <TaskCard key={task.id} task={task} type="completed" />
       ))}
 
-      <div className="progress">
-        Process: {tasks.length} / {total}
-      </div>
+      <p className="progress-text">Process: {tasks.length} / {totalCount}</p>
     </section>
   );
 }

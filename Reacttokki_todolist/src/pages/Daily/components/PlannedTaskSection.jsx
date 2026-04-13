@@ -1,9 +1,7 @@
-import { useNavigate } from "react-router-dom";
 import TaskCard from "./TaskCard";
+import AddTaskButton from "./AddTaskButton";
 
-function PlannedTaskSection({ tasks, onComplete }) {
-  const navigate = useNavigate();
-
+function PlannedTaskSection({ tasks, onComplete, onAddClick }) {
   return (
     <section className="planned-section">
       <h2>Planned tasks</h2>
@@ -17,9 +15,7 @@ function PlannedTaskSection({ tasks, onComplete }) {
         />
       ))}
 
-      <button onClick={() => navigate("/daily/add")}>
-        + Add task
-      </button>
+      <AddTaskButton onClick={onAddClick} />
     </section>
   );
 }

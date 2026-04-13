@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { TaskContext } from "./taskContext";
+import { useState, useMemo } from "react";
+import { TaskContext } from "./TaskContext";
 
 export function TaskProvider({ children }) {
   const [plannedTasks, setPlannedTasks] = useState([
@@ -36,10 +36,16 @@ export function TaskProvider({ children }) {
   const completeTask = (taskId) => {
     const targetTask = plannedTasks.find((task) => task.id === taskId);
     if (!targetTask) return;
-
     setPlannedTasks((prev) => prev.filter((task) => task.id !== taskId));
     setCompletedTasks((prev) => [...prev, targetTask]);
   };
+
+  // 오늘의 달성률: completed / (planned + completed) * 100
+  const todayPercent = useMemo(() => {
+    const total = plannedTasks.length + completedTasks.length;
+    if (total === 0) return 0;
+    return Math.round((completedTasks.length / total) * 100);
+  }, [plannedTasks, completedTasks]);
 
   return (
     <TaskContext.Provider
@@ -48,6 +54,7 @@ export function TaskProvider({ children }) {
         completedTasks,
         addTask,
         completeTask,
+        todayPercent,
       }}
     >
       {children}

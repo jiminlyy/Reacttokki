@@ -1,14 +1,23 @@
+import { useState } from "react";
+import "./Daily.css";
 import TopTabs from "../../components/TopTabs";
 import GlassPanel from "../../components/GlassPanel";
 import backgroundImg from "../../assets/background.png";
 import PlannedTaskSection from "./components/PlannedTaskSection";
 import CompletedTaskSection from "./components/CompletedTaskSection";
+import TaskForm from "./components/TaskForm";
 import { useTask } from "./context/useTask";
 
 export default function DailyPage() {
-  const { plannedTasks, completedTasks, completeTask } = useTask();
+  const { plannedTasks, completedTasks, completeTask, addTask } = useTask();
+  const [showForm, setShowForm] = useState(false);
 
   const totalCount = plannedTasks.length + completedTasks.length;
+
+  const handleAddSubmit = (newTask) => {
+    addTask(newTask);
+    setShowForm(false);
+  };
 
   return (
     <div
@@ -23,15 +32,25 @@ export default function DailyPage() {
       <TopTabs />
 
       <GlassPanel className="daily-panel">
-        <PlannedTaskSection
-          tasks={plannedTasks}
-          onComplete={completeTask}
-        />
+        <div className="daily-columns">
+          <PlannedTaskSection
+            tasks={plannedTasks}
+            onComplete={completeTask}
+            onAddClick={() => setShowForm(true)}
+          />
 
-        <CompletedTaskSection
-          tasks={completedTasks}
-          totalCount={totalCount}
-        />
+          {showForm ? (
+            <TaskForm
+              onSubmit={handleAddSubmit}
+              onCancel={() => setShowForm(false)}
+            />
+          ) : (
+            <CompletedTaskSection
+              tasks={completedTasks}
+              totalCount={totalCount}
+            />
+          )}
+        </div>
       </GlassPanel>
     </div>
   );

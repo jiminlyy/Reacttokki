@@ -1,14 +1,22 @@
+import GlassPanel from "../../components/GlassPanel";
+import TopTabs from "../../components/TopTabs";
+import backgroundImg from "../../assets/background.png";
 import { useState, useMemo } from "react";
+import { useTask } from "../Daily/context/useTask";
+import rabbit1 from "../../assets/rabbit1.png";
+import rabbit2 from "../../assets/rabbit2.png";
+import rabbit3 from "../../assets/rabbit3.png";
+import rabbit4 from "../../assets/rabbit4.png";
+import rabbit5 from "../../assets/rabbit5.png";
 
-//---토끼 이미지 입력 ---
 const RABBIT_IMAGES = {
-  0: "/assets/rabbit1.png",
-  25: "/assets/rabbit2.png",
-  50: "/assets/rabbit3.png",
-  75: "/assets/rabbit4.png",
-  100: "/assets/rabbit5.png",
+  0: rabbit1,
+  25: rabbit2,
+  50: rabbit3,
+  75: rabbit4,
+  100: rabbit5,
 };
-// ---토끼 한줄평 입력 ---
+
 const MESSAGES = {
   0: "오늘 시작해야죠!",
   25: "시작이 반이에요!",
@@ -17,16 +25,17 @@ const MESSAGES = {
   100: "완벽해요! 수고했어요🥕",
 };
 
-// ─── 달성률에 따른 원 색상 ───
+// 오늘 날짜 (4월 기준)
+const TODAY = new Date().getDate(); // 13
+
 function getCircleColor(percent) {
-  if (percent === 0) return "#EAEAEA";      // 연보라 (미완료)
-  if (percent <= 25) return "#FBF6FD";      // 보라
-  if (percent <= 50) return "#F6EAFC";      // 중간 보라
-  if (percent <= 75) return "#E2DFFD";      // 진보라
-  return "#CFD9F9";                          // 완료 (진한 보라)
+  if (percent === 0) return "#EAEAEA";
+  if (percent <= 25) return "#FBF6FD";
+  if (percent <= 50) return "#F6EAFC";
+  if (percent <= 75) return "#E2DFFD";
+  return "#CFD9F9";
 }
 
-// ─── 토끼 이미지 결정 함수 ───
 function getRabbitImage(percent) {
   if (percent >= 100) return RABBIT_IMAGES[100];
   if (percent >= 75) return RABBIT_IMAGES[75];
@@ -43,22 +52,16 @@ function getMessage(percent) {
   return MESSAGES[0];
 }
 
-// ─── 2026년 4월 달력 데이터 생성 ───
 function generateApril2026() {
-  // 2026년 4월 1일 = 수요일 (0=일, 3=수)
-  const startDay = 3; // 수요일
+  const startDay = 3;
   const totalDays = 30;
   const cells = [];
-
-  // 앞쪽 빈 칸 채우기
   for (let i = 0; i < startDay; i++) {
     cells.push({ day: null, key: `empty-${i}` });
   }
-  // 1~30일
   for (let d = 1; d <= totalDays; d++) {
     cells.push({ day: d, key: `day-${d}` });
   }
-  // 뒤쪽 빈 칸 (7의 배수 맞추기)
   while (cells.length % 7 !== 0) {
     cells.push({ day: null, key: `empty-end-${cells.length}` });
   }
@@ -68,176 +71,174 @@ function generateApril2026() {
 const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
 
 export default function Process() {
-  // ─── 각 날짜별 달성률 상태 (1~30일) ───
+  const { todayPercent } = useTask();
+
+  // 날짜별 달성률 저장 (오늘은 todayPercent로 덮어씌움)
   const [dayProgress, setDayProgress] = useState(() => {
     const init = {};
     for (let d = 1; d <= 30; d++) {
-      init[d] = 0; // 초기값 0%
+      init[d] = 0;
     }
     return init;
   });
 
-  // 날짜 클릭 시 달성률 순환: 0 → 25 → 50 → 75 → 100 → 0
-  const handleDayClick = (day) => {
-    if (!day) return;
-    setDayProgress((prev) => {
-      const current = prev[day];
-      const next = current >= 100 ? 0 : current + 25;
-      return { ...prev, [day]: next };
-    });
+  // 선택된 날짜 (기본값: 오늘)
+  const [selectedDay, setSelectedDay] = useState(TODAY);
+
+  // 오늘 날짜는 항상 todayPercent로 계산
+  const getPercent = (day) => {
+    if (day === TODAY) return todayPercent;
+    return dayProgress[day] ?? 0;
   };
 
-  // ─── 전체 달성률 계산 ───
+  const handleDayClick = (day) => {
+    if (!day) return;
+    setSelectedDay(day);
+    // 오늘이 아닌 날짜는 클릭 시 순환
+    if (day !== TODAY) {
+      setDayProgress((prev) => {
+        const current = prev[day];
+        const next = current >= 100 ? 0 : current + 25;
+        return { ...prev, [day]: next };
+      });
+    }
+  };
+
+  const selectedPercent = getPercent(selectedDay);
+
+  // 전체 달성률: 모든 날짜 평균
   const overallPercent = useMemo(() => {
-    const values = Object.values(dayProgress);
-    const sum = values.reduce((a, b) => a + b, 0);
-    return Math.round(sum / values.length);
-  }, [dayProgress]);
+    let sum = 0;
+    for (let d = 1; d <= 30; d++) {
+      sum += getPercent(d);
+    }
+    return Math.round(sum / 30);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dayProgress, todayPercent]);
 
   const calendarCells = useMemo(() => generateApril2026(), []);
-  const rabbitImg = getRabbitImage(overallPercent);
-  const message = getMessage(overallPercent);
+  const rabbitImg = getRabbitImage(selectedPercent);
+  const message = getMessage(selectedPercent);
 
   return (
-    <div style={styles.pageWrapper}>
-      {/*
-        실제 프로젝트에서는 여기에 <TopTaps /> 추가
-        <TopTaps />
-      */}
+    <div
+      style={{
+        backgroundImage: `url(${backgroundImg})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        minHeight: "100vh",
+      }}
+    >
+      <TopTabs />
+      <GlassPanel>
+        <div style={styles.wrapper}>
+          {/* ══════ 왼쪽: Process 카드 ══════ */}
+          <div style={styles.leftPanel}>
+            <div style={styles.titleBadge}>Process</div>
+            <div style={styles.rabbitBox}>
+              <img
+                src={rabbitImg}
+                alt={`토끼 ${selectedPercent}%`}
+                style={styles.rabbitImg}
+                onError={(e) => {
+                  e.target.style.display = "none";
+                  e.target.nextSibling.style.display = "flex";
+                }}
+              />
+              <div style={{ ...styles.fallbackText, display: "none" }}>
+                🐰
+              </div>
+            </div>
+            <div style={styles.messageBox}>{message}</div>
+            <div style={styles.percentText}>{selectedPercent}%</div>
+            <div style={styles.selectedDayLabel}>
+              4월 {selectedDay}일
+              {selectedDay === TODAY && " (오늘)"}
+            </div>
+            <div style={styles.overallLabel}>전체 평균: {overallPercent}%</div>
+          </div>
 
-      <div style={styles.wrapper}>
-        {/* ══════ 왼쪽: Process 카드 ══════ */}
-        <div style={styles.leftPanel}>
-          <div style={styles.titleBadge}>Process</div>
-
-          {/* 토끼 이미지 박스 */}
-          <div style={styles.rabbitBox}>
-            <img
-              src={rabbitImg}
-              alt={`토끼 ${overallPercent}%`}
-              style={styles.rabbitImg}
-              onError={(e) => {
-                // 이미지 없을 때 대체 텍스트 표시
-                e.target.style.display = "none";
-                e.target.nextSibling.style.display = "flex";
-              }}
-            />
-            <div style={{ ...styles.fallbackText, display: "none" }}>
-              🐰
-              <br />
-              rabbit{overallPercent >= 100 ? 5 : overallPercent >= 75 ? 4 : overallPercent >= 50 ? 3 : overallPercent >= 25 ? 2 : 1}.png
+          {/* ══════ 오른쪽: 캘린더 ══════ */}
+          <div style={styles.rightPanel}>
+            <div style={styles.monthTitle}>4</div>
+            <div style={styles.yearSubtitle}>2026</div>
+            <div style={styles.weekdayRow}>
+              {WEEKDAYS.map((wd) => (
+                <div key={wd} style={styles.weekdayCell}>{wd}</div>
+              ))}
+            </div>
+            <div style={styles.calendarGrid}>
+              {calendarCells.map((cell) => {
+                const percent = cell.day ? getPercent(cell.day) : 0;
+                const isSelected = cell.day === selectedDay;
+                const isToday = cell.day === TODAY;
+                return (
+                  <div
+                    key={cell.key}
+                    style={{
+                      ...styles.dayCircle,
+                      backgroundColor: cell.day
+                        ? getCircleColor(percent)
+                        : "transparent",
+                      cursor: cell.day ? "pointer" : "default",
+                      outline: isSelected ? "2px solid #a990d8" : "none",
+                      outlineOffset: "2px",
+                      boxShadow: isToday
+                        ? "0 0 0 2px #f0a8c8"
+                        : percent >= 100
+                        ? "0 0 12px rgba(108, 92, 231, 0.5)"
+                        : "none",
+                    }}
+                    onClick={() => handleDayClick(cell.day)}
+                    title={
+                      cell.day
+                        ? `4월 ${cell.day}일 - ${percent}%${cell.day === TODAY ? " (오늘, Daily에서 자동 연동)" : " (클릭하여 변경)"}`
+                        : ""
+                    }
+                  >
+                    {cell.day && (
+                      <span
+                        style={{
+                          ...styles.dayNumber,
+                          color: percent >= 75 ? "#fff" : "#4a4a6a",
+                        }}
+                      >
+                        {cell.day}
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+            <div style={styles.legend}>
+              {[
+                { label: "0%", color: "#EAEAEA" },
+                { label: "25%", color: "#FBF6FD" },
+                { label: "50%", color: "#F6EAFC" },
+                { label: "75%", color: "#E2DFFD" },
+                { label: "100%", color: "#CFD9F9" },
+              ].map((item) => (
+                <div key={item.label} style={styles.legendItem}>
+                  <div style={{ ...styles.legendDot, backgroundColor: item.color }} />
+                  <span style={styles.legendLabel}>{item.label}</span>
+                </div>
+              ))}
             </div>
           </div>
-
-          {/* 한줄평 + 퍼센트 */}
-          <div style={styles.messageBox}>{message}</div>
-          <div style={styles.percentText}>{overallPercent}%</div>
         </div>
-
-        {/* ══════ 오른쪽: 캘린더 ══════ */}
-        <div style={styles.rightPanel}>
-          <div style={styles.monthTitle}>4</div>
-          <div style={styles.yearSubtitle}>2026</div>
-
-          {/* 요일 헤더 */}
-          <div style={styles.weekdayRow}>
-            {WEEKDAYS.map((wd) => (
-              <div key={wd} style={styles.weekdayCell}>
-                {wd}
-              </div>
-            ))}
-          </div>
-
-          {/* 날짜 그리드 */}
-          <div style={styles.calendarGrid}>
-            {calendarCells.map((cell) => (
-              <div
-                key={cell.key}
-                style={{
-                  ...styles.dayCircle,
-                  backgroundColor: cell.day
-                    ? getCircleColor(dayProgress[cell.day])
-                    : "transparent",
-                  cursor: cell.day ? "pointer" : "default",
-                  boxShadow: cell.day && dayProgress[cell.day] >= 100
-                    ? "0 0 12px rgba(108, 92, 231, 0.5)"
-                    : "none",
-                }}
-                onClick={() => handleDayClick(cell.day)}
-                title={
-                  cell.day
-                    ? `4월 ${cell.day}일 - ${dayProgress[cell.day]}% (클릭하여 변경)`
-                    : ""
-                }
-              >
-                {cell.day && (
-                  <span
-                    style={{
-                      ...styles.dayNumber,
-                      color: dayProgress[cell.day] >= 75 ? "#fff" : "#4a4a6a",
-                    }}
-                  >
-                    {cell.day}
-                  </span>
-                )}
-              </div>
-            ))}
-          </div>
-
-          {/* 범례 */}
-          <div style={styles.legend}>
-            {[
-              { label: "0%", color: "#e0d6f0" },
-              { label: "25%", color: "#c4b0e8" },
-              { label: "50%", color: "#9b8ec4" },
-              { label: "75%", color: "#7b6fa0" },
-              { label: "100%", color: "#6c5ce7" },
-            ].map((item) => (
-              <div key={item.label} style={styles.legendItem}>
-                <div
-                  style={{
-                    ...styles.legendDot,
-                    backgroundColor: item.color,
-                  }}
-                />
-                <span style={styles.legendLabel}>{item.label}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
+      </GlassPanel>
     </div>
   );
 }
 
-// ─── 스타일 ───
 const styles = {
-  pageWrapper: {
-    minHeight: "100vh",
-    background: "linear-gradient(135deg, #ddd6f3 0%, #faaca8 50%, #c4b0e8 100%)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: "2rem",
-    fontFamily: "'Noto Sans KR', 'Apple SD Gothic Neo', sans-serif",
-  },
   wrapper: {
     display: "flex",
     gap: "2rem",
-    background: "rgba(255, 255, 255, 0.25)",
-    backdropFilter: "blur(16px)",
-    WebkitBackdropFilter: "blur(16px)",
-    borderRadius: "24px",
-    border: "1px solid rgba(255, 255, 255, 0.4)",
-    padding: "2rem",
-    maxWidth: "900px",
     width: "100%",
-    boxShadow: "0 8px 32px rgba(100, 80, 160, 0.15)",
   },
-
-  /* ── 왼쪽 패널 ── */
   leftPanel: {
-    flex: "0 0 240px",
+    flex: "0 0 360px",
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
@@ -247,14 +248,14 @@ const styles = {
     background: "rgba(200, 180, 240, 0.4)",
     borderRadius: "20px",
     padding: "0.4rem 1.5rem",
-    fontSize: "1.1rem",
+    fontSize: "1.3rem",
     fontWeight: "700",
     color: "#4a4a6a",
     letterSpacing: "0.5px",
   },
   rabbitBox: {
-    width: "220px",
-    height: "260px",
+    width: "320px",
+    height: "360px",
     background: "rgba(255, 220, 240, 0.4)",
     borderRadius: "16px",
     display: "flex",
@@ -282,20 +283,28 @@ const styles = {
     background: "rgba(255, 200, 220, 0.5)",
     borderRadius: "12px",
     padding: "0.5rem 1.2rem",
-    fontSize: "0.9rem",
+    fontSize: "1.1rem",
     fontWeight: "600",
     color: "#5a4a6a",
     textAlign: "center",
     width: "100%",
   },
   percentText: {
-    fontSize: "2.5rem",
+    fontSize: "3.5rem",
     fontWeight: "800",
     color: "#5a4a6a",
     lineHeight: 1,
   },
-
-  /* ── 오른쪽 패널 ── */
+  selectedDayLabel: {
+    fontSize: "0.9rem",
+    color: "#8a7ab0",
+    fontWeight: "600",
+  },
+  overallLabel: {
+    fontSize: "0.85rem",
+    color: "#a090c0",
+    fontWeight: "500",
+  },
   rightPanel: {
     flex: 1,
     display: "flex",
@@ -303,13 +312,13 @@ const styles = {
     alignItems: "center",
   },
   monthTitle: {
-    fontSize: "2rem",
+    fontSize: "2.5rem",
     fontWeight: "800",
     color: "#4a4a6a",
     lineHeight: 1,
   },
   yearSubtitle: {
-    fontSize: "0.85rem",
+    fontSize: "1rem",
     color: "#8a7ab0",
     marginBottom: "0.75rem",
     fontWeight: "600",
@@ -323,7 +332,7 @@ const styles = {
   },
   weekdayCell: {
     textAlign: "center",
-    fontSize: "0.75rem",
+    fontSize: "0.95rem",
     fontWeight: "700",
     color: "#8a7ab0",
     padding: "4px 0",
@@ -344,12 +353,10 @@ const styles = {
     minWidth: "36px",
   },
   dayNumber: {
-    fontSize: "0.85rem",
+    fontSize: "1.1rem",
     fontWeight: "700",
     userSelect: "none",
   },
-
-  /* ── 범례 ── */
   legend: {
     display: "flex",
     gap: "12px",
@@ -366,7 +373,7 @@ const styles = {
     width: "12px",
     height: "12px",
     borderRadius: "50%",
-    border: "1px solid rgba(255,255,255,0.5)",
+    border: "1px solid rgba(200,180,220,0.5)",
   },
   legendLabel: {
     fontSize: "0.7rem",

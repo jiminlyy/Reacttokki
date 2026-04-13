@@ -1,14 +1,14 @@
-import React, { useState } from "react";
+//import React, { useState } from "react";
 import "./Weekly.css";
 import bg from "../../assets/background.png";
-import TopTabs from "../../components/common/TopTabs";
-import GlassPanel from "../../components/common/GlassPanel";
+import TopTabs from "../../components/TopTabs";
+import GlassPanel from "../../components/GlassPanel";
 
 const hours = Array.from({ length: 24 }, (_, i) => i);
 const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
 export default function Weekly() {
-  const [events] = useState([]);
+  //const [events] = useState([]);
 
   return (
     <div className="planner" style={{ backgroundImage: `url(${bg})` }}>
